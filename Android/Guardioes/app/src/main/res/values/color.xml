@@ -33,4 +33,11 @@
     <color name="translucent_white_light">#80ffffff</color>
     <color name="translucent_white">#ccffffff</color>
 
+    <array name="load_dialog">
+        <item>@color/primary</item>
+        <item>@color/primary</item>
+        <item>@android:color/white</item>
+        <item>@android:color/white</item>
+    </array>
+
 </resources>
