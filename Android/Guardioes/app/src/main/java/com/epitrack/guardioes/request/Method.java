@@ -5,15 +5,15 @@ package com.epitrack.guardioes.request;
  */
 public enum Method {
 
-    OPTIONS     ("Options"),
-    GET         ("Get"),
-    HEAD        ("Head"),
-    POST        ("Post"),
-    PUT         ("Put"),
-    PATCH       ("Patch"),
-    DELETE      ("Delete"),
-    TRACE       ("Trace"),
-    CONNECT     ("Connect");
+    OPTIONS     ("OPTIONS"),
+    GET         ("GET"),
+    HEAD        ("HEAD"),
+    POST        ("POST"),
+    PUT         ("PUT"),
+    PATCH       ("PATCH"),
+    DELETE      ("DELETE"),
+    TRACE       ("TRACE"),
+    CONNECT     ("CONNECT");
 
     private final String name;
 

@@ -9,5 +9,5 @@ public interface RequestListener<T> {
 
     void onError(Exception e);
 
-    void onSuccess(T entity);
+    void onSuccess(T type);
 }
