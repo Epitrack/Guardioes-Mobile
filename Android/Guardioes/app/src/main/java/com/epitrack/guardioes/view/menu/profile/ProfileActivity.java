@@ -1,11 +1,6 @@
 package com.epitrack.guardioes.view.menu.profile;
 
 import android.app.Fragment;
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ListView;
@@ -18,15 +13,10 @@ import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
-import com.epitrack.guardioes.utility.NetworkUtility;
-import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
-import com.epitrack.guardioes.view.menu.help.Report;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -52,8 +41,6 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
     SingleUser singleUser = SingleUser.getInstance();
     private final Map<String, Fragment> fragmentMap = new HashMap<>();
 
-    private Tracker mTracker;
-
     public static ArrayList<User> userArrayList;
 
     @Override
@@ -61,12 +48,6 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
         super.onCreate(bundle);
 
         setContentView(R.layout.profile_activity);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         if (userArrayList == null) {
             userArrayList = loadProfiles();
@@ -83,8 +64,10 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
     @Override
     protected void onResume() {
         super.onResume();
-        mTracker.setScreenName("List Profile Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("List Profile Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
+
         if (userArrayList == null) {
             userArrayList = loadProfiles();
         }
@@ -106,7 +89,7 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
     @OnClick(R.id.button_add)
     public void onAdd() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Add New Member Button")
                 .build());
@@ -121,7 +104,7 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
     @Override
     public void onEdit(final User user) {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Edit Profile Button")
                 .build());
@@ -171,7 +154,7 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
     public void onDelete(final User user) {
         //Miquéias Lopes
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Delete Member Button")
                 .build());
@@ -298,5 +281,4 @@ public class ProfileActivity extends BaseAppCompatActivity implements UserListen
 
         return userList;
     }
-
 }

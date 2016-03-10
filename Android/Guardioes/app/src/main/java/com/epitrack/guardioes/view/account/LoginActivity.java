@@ -1,12 +1,9 @@
 package com.epitrack.guardioes.view.account;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
@@ -16,26 +13,22 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
-import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.HomeActivity;
+import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.Email;
 import com.mobsandgeeks.saripaar.annotation.Password;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -67,7 +60,6 @@ public class LoginActivity extends BaseAppCompatActivity implements SocialAccoun
     private boolean inLogin;
     private Validator validator;
     SharedPreferences sharedPreferences = null;
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -80,12 +72,6 @@ public class LoginActivity extends BaseAppCompatActivity implements SocialAccoun
         if (actionBar == null) {
             throw new IllegalArgumentException("The actionBar is null.");
         }
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         actionBar.setDisplayShowTitleEnabled(false);
 
@@ -178,8 +164,9 @@ public class LoginActivity extends BaseAppCompatActivity implements SocialAccoun
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Login Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Login Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -214,7 +201,8 @@ public class LoginActivity extends BaseAppCompatActivity implements SocialAccoun
 
     @OnClick(R.id.text_view_forgot_password)
     public void onForgotPassword() {
-        mTracker.send(new HitBuilders.EventBuilder()
+
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Forgot Password Button")
                 .build());
@@ -331,7 +319,8 @@ public class LoginActivity extends BaseAppCompatActivity implements SocialAccoun
 
     @OnClick(R.id.button_login)
     public void onLogin(final View view) {
-        mTracker.send(new HitBuilders.EventBuilder()
+
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Login by Email Button")
                 .build());

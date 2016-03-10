@@ -16,7 +16,6 @@ import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.view.HomeActivity;
@@ -35,7 +34,6 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -44,13 +42,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.twitter.sdk.android.Twitter;
+import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterAuthToken;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
-import com.twitter.sdk.android.core.Callback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -100,7 +98,7 @@ public class SocialLoginActivity extends BaseAppCompatActivity implements View.O
     private ProfileTracker profileTracker;
 
     SingleUser singleUser = SingleUser.getInstance();
-    private Tracker mTracker;
+
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
@@ -114,17 +112,11 @@ public class SocialLoginActivity extends BaseAppCompatActivity implements View.O
 
         actionBar.setDisplayShowTitleEnabled(false);
 
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
-
         modeSociaLogin = (String)DTO.object;
 
         if (modeSociaLogin == Constants.Bundle.TWITTER) {
 
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Twitter Button")
                     .build());
@@ -167,7 +159,7 @@ public class SocialLoginActivity extends BaseAppCompatActivity implements View.O
              buttonTwitter.callOnClick();
         } else if (modeSociaLogin == Constants.Bundle.GOOGLE) {
 
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Google Button")
                     .build());
@@ -192,7 +184,7 @@ public class SocialLoginActivity extends BaseAppCompatActivity implements View.O
             signIn();
         } else if (modeSociaLogin == Constants.Bundle.FACEBOOK) {
 
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Facebook Button")
                     .build());
@@ -297,8 +289,9 @@ public class SocialLoginActivity extends BaseAppCompatActivity implements View.O
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Social Access Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Social Access Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override

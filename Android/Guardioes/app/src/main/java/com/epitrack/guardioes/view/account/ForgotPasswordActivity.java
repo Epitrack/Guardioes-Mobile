@@ -10,12 +10,9 @@ import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.DialogBuilder;
-import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONObject;
 
@@ -33,8 +30,6 @@ public class ForgotPasswordActivity extends BaseAppCompatActivity {
     @Bind(R.id.edit_text_email_forgot)
     EditText editTextEmail;
 
-    private Tracker mTracker;
-
     @Override
     protected void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
@@ -47,19 +42,13 @@ public class ForgotPasswordActivity extends BaseAppCompatActivity {
             throw new IllegalArgumentException("The actionBar is null.");
         }
 
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
-
         actionBar.setDisplayShowTitleEnabled(false);
     }
 
 
     @OnClick(R.id.button_forgot_password)
     public void sendEmail() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Forgot Password Button")
                 .build());
@@ -113,7 +102,8 @@ public class ForgotPasswordActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Forgot Password Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Forgot Password Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 }

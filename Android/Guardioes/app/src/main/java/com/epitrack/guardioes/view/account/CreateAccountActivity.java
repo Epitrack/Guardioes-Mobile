@@ -14,31 +14,27 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.DTO;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
+import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DateFormat;
 import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.utility.LocationUtility;
 import com.epitrack.guardioes.utility.Mask;
-import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.HomeActivity;
-import com.epitrack.guardioes.request.Method;
+import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.menu.help.Term;
 import com.epitrack.guardioes.view.menu.profile.UserActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.mobsandgeeks.saripaar.ValidationError;
 import com.mobsandgeeks.saripaar.Validator;
 import com.mobsandgeeks.saripaar.annotation.ConfirmPassword;
@@ -108,7 +104,6 @@ public class CreateAccountActivity extends BaseAppCompatActivity implements Soci
     private Validator validator;
     private State state = State.SOCIAL;
     private SharedPreferences sharedPreferences = null;
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -123,12 +118,6 @@ public class CreateAccountActivity extends BaseAppCompatActivity implements Soci
         }
 
         actionBar.setDisplayShowTitleEnabled(false);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         buttonMail.setEnabled(false);
 
@@ -157,8 +146,9 @@ public class CreateAccountActivity extends BaseAppCompatActivity implements Soci
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Create Account Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Create Account Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -285,10 +275,12 @@ public class CreateAccountActivity extends BaseAppCompatActivity implements Soci
 
     @OnClick(R.id.button_mail)
     public void onMail() {
-        mTracker.send(new HitBuilders.EventBuilder()
+
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Create Account by Email Button")
                 .build());
+
         onNextAnimation(linearLayoutNext, linearLayoutSocial);
     }
 
@@ -441,10 +433,12 @@ public class CreateAccountActivity extends BaseAppCompatActivity implements Soci
 
     @OnClick(R.id.button_create_account)
     public void onCreateAccount() {
-        mTracker.send(new HitBuilders.EventBuilder()
+
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Register Yourself Button")
                 .build());
+
         // TODO: Uncomment this to validate
         validator.validate();
 

@@ -1,25 +1,18 @@
 package com.epitrack.guardioes.view.menu.help;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.DialogBuilder;
-import com.epitrack.guardioes.utility.SocialShare;
-import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,32 +36,25 @@ public class Report extends BaseAppCompatActivity {
     @Bind(R.id.button_send_email)
     Button buttonSendEmail;
 
-    private Tracker mTracker;
-
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
 
         setContentView(R.layout.report);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Report Problem Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Report Problem Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @OnClick(R.id.button_send_email)
     public void sendEmail() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Send Report Button")
                 .build());
@@ -153,5 +139,4 @@ public class Report extends BaseAppCompatActivity {
         }
         return true;
     }
-
 }

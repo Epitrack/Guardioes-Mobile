@@ -3,29 +3,20 @@ package com.epitrack.guardioes.view.survey;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.text.InputType;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
-import com.epitrack.guardioes.model.Symptom;
 import com.epitrack.guardioes.model.SymptomList;
 import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.utility.LocationUtility;
@@ -33,7 +24,6 @@ import com.epitrack.guardioes.utility.SocialShare;
 import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,7 +34,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.Bind;
-import butterknife.OnCheckedChanged;
 
 /**
  * @author Igor Morais
@@ -60,7 +49,6 @@ public class SymptomActivity extends BaseAppCompatActivity {
 
     List<SymptomList> symptomArray = new ArrayList<>();
     String id;
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -69,12 +57,6 @@ public class SymptomActivity extends BaseAppCompatActivity {
         id = getIntent().getStringExtra("id_user");
 
         setContentView(R.layout.symptom);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         final View footerView = LayoutInflater.from(this).inflate(R.layout.symptom_footer, null);
 
@@ -459,8 +441,9 @@ public class SymptomActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Symptom Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Symptom Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
 

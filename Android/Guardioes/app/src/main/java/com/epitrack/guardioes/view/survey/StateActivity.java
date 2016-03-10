@@ -1,6 +1,5 @@
 package com.epitrack.guardioes.view.survey;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -11,7 +10,6 @@ import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.utility.LocationUtility;
@@ -19,7 +17,6 @@ import com.epitrack.guardioes.utility.SocialShare;
 import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +32,6 @@ public class StateActivity extends BaseAppCompatActivity {
 
     String id;
     SingleUser singleUser = SingleUser.getInstance();
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -51,18 +47,12 @@ public class StateActivity extends BaseAppCompatActivity {
         }
 
         setContentView(R.layout.state);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
     }
 
     @OnClick(R.id.text_view_state_good)
     public void onStateGood() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Survey State Good Button")
                 .build());
@@ -115,7 +105,7 @@ public class StateActivity extends BaseAppCompatActivity {
     @OnClick(R.id.text_view_state_bad)
     public void onStateBad() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Survey State Bad Button")
                 .build());
@@ -148,7 +138,8 @@ public class StateActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Select State Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Select State Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 }
