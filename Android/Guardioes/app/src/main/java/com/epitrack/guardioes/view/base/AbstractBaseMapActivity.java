@@ -1,11 +1,13 @@
 package com.epitrack.guardioes.view.base;
 
 import android.location.Location;
+import android.os.Bundle;
 
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.manager.LocationListener;
 import com.epitrack.guardioes.manager.LocationManager;
 import com.epitrack.guardioes.model.SingleDTO;
+import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.utility.LocationUtility;
 import com.epitrack.guardioes.utility.Logger;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,44 +37,51 @@ public abstract class AbstractBaseMapActivity extends BaseAppCompatActivity impl
     private SingleDTO singleDTO = SingleDTO.getInstance();
 
     @Override
-    public void onMapReady(final GoogleMap map) {
-        setMap(map);
+    protected void onCreate(final Bundle bundle) {
+        super.onCreate(bundle);
 
         locationHandler = new LocationManager(this, this);
     }
 
     @Override
+    public void onMapReady(final GoogleMap map) {
+        setMap(map);
+
+        if (locationHandler.isEnabled()) {
+            locationHandler.connect();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!locationHandler.isEnabled()) {
+
+            new DialogBuilder(this).load()
+                    .title(R.string.attention)
+                    .content(R.string.network_disable)
+                    .positiveText(R.string.ok).show();
+        }
+    }
+
+    @Override
     public void onLastLocation(final Location location) {
 
-        if (singleDTO.getLatLng() != null) {
-            final LatLng latLng = singleDTO.getLatLng();
-            singleDTO.setLatLng(null);
-            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM), new GoogleMap.CancelableCallback() {
-                @Override
-                public void onFinish() {
-                    userMarker = getMap().addMarker(loadMarkerOption().position(latLng));
-                }
+        final LatLng latLng = LocationUtility.toLatLng(location);
 
-                @Override
-                public void onCancel() {
+        getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM), new GoogleMap.CancelableCallback() {
 
-                }
-            });
-        } else {
-            final LatLng latLng = LocationUtility.toLatLng(location);
+            @Override
+            public void onFinish() {
+                userMarker = getMap().addMarker(loadMarkerOption().position(latLng));
+            }
 
-            getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM), new GoogleMap.CancelableCallback() {
-                @Override
-                public void onFinish() {
-                    userMarker = getMap().addMarker(loadMarkerOption().position(latLng));
-                }
+            @Override
+            public void onCancel() {
 
-                @Override
-                public void onCancel() {
-
-                }
-            });
-        }
+            }
+        });
     }
 
     @Override
@@ -96,7 +105,6 @@ public abstract class AbstractBaseMapActivity extends BaseAppCompatActivity impl
     }
 
     private void setMap(final GoogleMap map) {
-
         map.setOnMarkerClickListener(this);
 
         this.map = map;
