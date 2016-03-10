@@ -1,11 +1,8 @@
 package com.epitrack.guardioes.view;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,9 +19,8 @@ import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.manager.Loader;
 import com.epitrack.guardioes.model.Point;
 import com.epitrack.guardioes.request.Method;
-import com.epitrack.guardioes.request.Requester;
+import com.epitrack.guardioes.request.RequestListener;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DialogBuilder;
 import com.epitrack.guardioes.utility.LocationUtility;
@@ -33,8 +29,6 @@ import com.epitrack.guardioes.view.tip.Tip;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -42,7 +36,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -51,8 +44,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 import butterknife.Bind;
 
@@ -71,11 +62,10 @@ public class MapPointActivity extends AbstractBaseMapActivity {
     TextView textViewAddress;
 
     private MarkerOptions markerOption;
+
     private final Map<Marker, Point> pointMap = new HashMap<>();
 
-    int tip;
-    private LocationUtility locationUtility;
-    private Tracker mTracker;
+    private int tip;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -83,58 +73,40 @@ public class MapPointActivity extends AbstractBaseMapActivity {
 
         setContentView(R.layout.map_point);
 
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
+        tip = getIntent().getIntExtra(Constants.Bundle.TIP, 0);
 
-        locationUtility = new LocationUtility(getApplicationContext());
+        final MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.fragment_map);
 
-        if (locationUtility.getLocation() == null) {
-            new DialogBuilder(MapPointActivity.this).load()
-                    .title(R.string.attention)
-                    .content(R.string.network_disable)
-                    .positiveText(R.string.ok)
-                    .callback(new MaterialDialog.ButtonCallback() {
-                        @Override
-                        public void onPositive(final MaterialDialog dialog) {
-                            navigateTo(HomeActivity.class);
-                        }
-                    }).show();
-        } else {
-
-            tip = getIntent().getIntExtra(Constants.Bundle.TIP, 0);
-
-            final MapFragment mapFragment = (MapFragment) getFragmentManager()
-                    .findFragmentById(R.id.fragment_map);
-
-            mapFragment.getMapAsync(this);
-
-            if (Tip.getBy(tip) == Tip.PHARMACY) {
-                getSupportActionBar().setTitle(R.string.pharmacy);
-
-                new DialogBuilder(MapPointActivity.this).load()
-                        .title(R.string.attention)
-                        .content(R.string.alert_pharmacy)
-                        .positiveText(R.string.ok)
-                        .show();
-
-            } else if (Tip.getBy(tip) == Tip.HOSPITAL) {
-                getSupportActionBar().setTitle(R.string.hospital);
-            }
-        }
+        mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if(Tip.getBy(tip) == Tip.PHARMACY) {
-            mTracker.setScreenName("Pharmacy Screen - " + this.getClass().getSimpleName());
+
+        if (Tip.getBy(tip) == Tip.PHARMACY) {
+            getTracker().setScreenName("Pharmacy Screen - " + this.getClass().getSimpleName());
+
         } else {
-            mTracker.setScreenName("UPAs Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("UPAs Screen - " + this.getClass().getSimpleName());
         }
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
+    }
+
+    @Override
+    public void onLastLocation(final Location location) {
+        super.onLastLocation(location);
+
+        final LatLng latLng = LocationUtility.toLatLng(location);
+
+        if (Tip.getBy(tip) == Tip.HOSPITAL) {
+            load();
+
+        } else {
+            loadPharmacy(latLng.latitude, latLng.longitude);
+        }
     }
 
     @Override
@@ -142,74 +114,84 @@ public class MapPointActivity extends AbstractBaseMapActivity {
 
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
-        } else {
-            super.onOptionsItemSelected(item);
+
+            return true;
         }
-        return true;
+
+        return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onMapReady(final GoogleMap map) {
-        super.onMapReady(map);
+    private void loadPharmacy(final double latitude, final double longitude) {
 
-        new MapAsyncTaskRunner().executeOnExecutor(Executors.newSingleThreadExecutor());
-    }
+        final SimpleRequester requester = new SimpleRequester();
 
-    private void loadPharmacy() {
+        requester.setJsonObject(null);
+        requester.setMethod(Method.GET);
+        requester.setOtherAPI(true);
+        requester.setUrl("https://maps.googleapis.com/maps/api/place/textsearch/json?query=pharmacy&location=" + latitude + "," + longitude + "&radius=10000&key=AIzaSyDYl7spN_NpAjAWL7Hi183SK2cApiIS3Eg");
 
-        final List<Point> pointList = new ArrayList<Point>();
+        requester.execute();
 
-        SimpleRequester simpleRequester = new SimpleRequester();
-        simpleRequester.setJsonObject(null);
-        simpleRequester.setMethod(Method.GET);
-        simpleRequester.setOtherAPI(true);
-        simpleRequester.setUrl("https://maps.googleapis.com/maps/api/place/textsearch/json?query=pharmacy&location="+locationUtility.getLatitude()+","+locationUtility.getLongitude()+"&radius=10000&key=AIzaSyDYl7spN_NpAjAWL7Hi183SK2cApiIS3Eg");
+        requester.setListener(new RequestListener<String>() {
 
-        String jsonStr = null;
-        try {
-            jsonStr = simpleRequester.execute(simpleRequester).get();
+            @Override
+            public void onStart() {
 
-            JSONObject jsonObject = new JSONObject(jsonStr);
+            }
 
-            if (!jsonObject.get("status").toString().toUpperCase().equals("OK")) {
-                Toast.makeText(getApplicationContext(), R.string.generic_error, Toast.LENGTH_SHORT).show();
-            } else {
+            @Override
+            public void onError(Exception e) {
 
-                JSONArray jsonArray = jsonObject.getJSONArray("results");
+            }
 
-                for (int i = 0; i < jsonArray.length(); i++) {
+            @Override
+            public void onSuccess(final String result) {
 
-                    jsonObject = jsonArray.getJSONObject(i);
-                    JSONObject jsonObjectGeometry = jsonObject.getJSONObject("geometry");
-                    JSONObject jsonObjectLocation = jsonObjectGeometry.getJSONObject("location");
+                try {
 
-                    Point point = new Point();
-                    point.setLatitude(jsonObjectLocation.getDouble("lat"));
-                    point.setLongitude(jsonObjectLocation.getDouble("lng"));
-                    point.setLogradouro(jsonObject.getString("formatted_address"));
-                    point.setName(jsonObject.getString("name"));
+                    final List<Point> pointList = new ArrayList<>();
 
-                    pointList.add(point);
-                }
+                    JSONObject jsonObject = new JSONObject(result);
 
-                if (pointList.size() > 0) {
-                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            addMarker(pointList);
+                    if (!jsonObject.get("status").toString().toUpperCase().equals("OK")) {
+                        Toast.makeText(getApplicationContext(), R.string.generic_error, Toast.LENGTH_SHORT).show();
+
+                    } else {
+
+                        JSONArray jsonArray = jsonObject.getJSONArray("results");
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+
+                            jsonObject = jsonArray.getJSONObject(i);
+                            JSONObject jsonObjectGeometry = jsonObject.getJSONObject("geometry");
+                            JSONObject jsonObjectLocation = jsonObjectGeometry.getJSONObject("location");
+
+                            Point point = new Point();
+                            point.setLatitude(jsonObjectLocation.getDouble("lat"));
+                            point.setLongitude(jsonObjectLocation.getDouble("lng"));
+                            point.setLogradouro(jsonObject.getString("formatted_address"));
+                            point.setName(jsonObject.getString("name"));
+
+                            pointList.add(point);
                         }
-                    }, 2000);
+
+                        if (!pointList.isEmpty()) {
+
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    addMarker(pointList);
+                                }
+
+                            }, 2000);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-
+        });
     }
 
     private void load() {
@@ -266,10 +248,13 @@ public class MapPointActivity extends AbstractBaseMapActivity {
     private MarkerOptions getMarkerOption() {
 
         if (Tip.getBy(tip) == Tip.PHARMACY) {
+
             if (markerOption == null) {
                 markerOption = new MarkerOptions().icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_marker_pharmacy));
             }
+
         } else if (Tip.getBy(tip) == Tip.HOSPITAL) {
+
             if (markerOption == null) {
                 markerOption = new MarkerOptions().icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_marker_hospital));
             }
@@ -285,7 +270,7 @@ public class MapPointActivity extends AbstractBaseMapActivity {
 
         if (point != null) {
             textViewName.setText(point.getName());
-            textViewAddress.setText(formatAddress(point));
+            textViewAddress.setText(format(point));
 
             final Animation animation = AnimationUtils.loadAnimation(this, R.anim.slide_in_top);
 
@@ -337,47 +322,14 @@ public class MapPointActivity extends AbstractBaseMapActivity {
                             Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
                             startActivity(intent);
                         }
+
                     }).show();
         }
 
         return true;
     }
 
-    private String formatAddress(final Point point) {
+    private String format(final Point point) {
         return point.getLogradouro() + ", " + point.getNumero();
     }
-
-    private class MapAsyncTaskRunner extends AsyncTask<Void, Void, Void> {
-
-        private ProgressDialog progressDialog;
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-
-            if (Tip.getBy(tip) == Tip.PHARMACY) {
-                loadPharmacy();
-            } else if (Tip.getBy(tip) == Tip.HOSPITAL) {
-                load();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void voids) {
-
-            progressDialog.dismiss();
-        }
-
-        @Override
-        protected void onPreExecute() {
-            progressDialog = new ProgressDialog(MapPointActivity.this);
-            progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.rgb(30, 136, 229)));
-            progressDialog.setTitle(R.string.app_name);
-            progressDialog.setMessage("Atualizando dados no mapa...");
-            progressDialog.show();
-        }
-    }
-
 }
