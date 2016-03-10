@@ -1,10 +1,6 @@
 package com.epitrack.guardioes.view.diary;
 
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,12 +17,13 @@ import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
+import com.epitrack.guardioes.request.RequestListener;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
+import com.epitrack.guardioes.utility.Logger;
+import com.epitrack.guardioes.utility.MySelectorDecoratorBad;
 import com.epitrack.guardioes.utility.MySelectorDecoratorEquals;
 import com.epitrack.guardioes.utility.MySelectorDecoratorGood;
-import com.epitrack.guardioes.utility.MySelectorDecoratorBad;
 import com.epitrack.guardioes.utility.MySelectorDecoratorOnlyBad;
 import com.epitrack.guardioes.utility.MySelectorDecoratorOnlyGood;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
@@ -36,7 +33,6 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.helper.StaticLabelsFormatter;
@@ -73,6 +69,8 @@ import butterknife.Bind;
  * @author Igor Morais
  */
 public class DiaryActivity extends BaseAppCompatActivity implements ParentListener, OnDateSelectedListener, OnMonthChangedListener {
+
+    private static final String TAG = DiaryActivity.class.getSimpleName();
 
     @Bind(R.id.text_view_participation)
     TextView textViewParticipation;
@@ -145,7 +143,6 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
 
     private DiaryActivity context;
     private CalendarDay calendarDay;
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
@@ -156,13 +153,7 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
-
-        context = DiaryActivity.this;
+        context = this;
 
         final List<User> parentList = new ArrayList<>();
 
@@ -176,47 +167,72 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
                 singleUser.getDob(), singleUser.getRace(),
                 singleUser.getGender(), singleUser.getPicture()));
 
-        try {
-            String jsonStr = simpleRequester.execute(simpleRequester).get();
+        recyclerView.setAdapter(new MemberAdapter(DiaryActivity.this, DiaryActivity.this, parentList));
 
-            JSONObject jsonObject = new JSONObject(jsonStr);
+        simpleRequester.execute();
 
-            if (jsonObject.get("error").toString() == "false") {
+        simpleRequester.setListener(new RequestListener<String>() {
 
-                JSONArray jsonArray = jsonObject.getJSONArray("data");
+            @Override
+            public void onStart() {
 
-                if (jsonArray.length() > 0) {
-
-                    JSONObject jsonObjectHousehold;
-
-                    for (int i = 0; i < jsonArray.length(); i++) {
-
-                        jsonObjectHousehold = jsonArray.getJSONObject(i);
-                        parentList.add(new User(R.drawable.image_avatar_small_8, jsonObjectHousehold.get("nick").toString(),
-                                "", jsonObjectHousehold.get("id").toString(),
-                                jsonObjectHousehold.get("dob").toString(), jsonObjectHousehold.get("race").toString(),
-                                jsonObjectHousehold.get("gender").toString(), jsonObjectHousehold.get("picture").toString()));
-                    }
-                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
-        recyclerView.setAdapter(new MemberAdapter(getApplicationContext(), this, parentList));
-        setupView(null);
-        setDataLineChart();
+            @Override
+            public void onError(Exception e) {
+
+            }
+
+            @Override
+            public void onSuccess(final String result) {
+
+                try {
+
+                    JSONObject jsonObject = new JSONObject(result);
+
+                    if (jsonObject.get("error").toString() == "false") {
+
+                        JSONArray jsonArray = jsonObject.getJSONArray("data");
+
+                        if (jsonArray.length() > 0) {
+
+                            JSONObject jsonObjectHousehold;
+
+                            for (int i = 0; i < jsonArray.length(); i++) {
+
+                                jsonObjectHousehold = jsonArray.getJSONObject(i);
+                                parentList.add(new User(R.drawable.image_avatar_small_8, jsonObjectHousehold.get("nick").toString(),
+                                        "", jsonObjectHousehold.get("id").toString(),
+                                        jsonObjectHousehold.get("dob").toString(), jsonObjectHousehold.get("race").toString(),
+                                        jsonObjectHousehold.get("gender").toString(), jsonObjectHousehold.get("picture").toString()));
+                            }
+
+                            recyclerView.setAdapter(new MemberAdapter(DiaryActivity.this, DiaryActivity.this, parentList));
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    Logger.logError(TAG, e.getMessage());
+                }
+
+                setDataLineChart();
+            }
+        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Diary of Health Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Diary of Health Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+
     }
 
     private void setupView(String idHouseHold) {
@@ -228,89 +244,103 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
         } else if (idHouseHold == null) {
             simpleRequester.setUrl(Requester.API_URL + "user/survey/summary");
         } else {
-            simpleRequester.setUrl(Requester.API_URL + "household/survey/summary?household_id="+idHouseHold);
+            simpleRequester.setUrl(Requester.API_URL + "household/survey/summary?household_id=" + idHouseHold);
         }
 
         simpleRequester.setJsonObject(null);
         simpleRequester.setMethod(Method.GET);
 
-        String jsonStr;
-        try {
-            jsonStr = simpleRequester.execute(simpleRequester).get();
+        simpleRequester.execute();
 
-            JSONObject jsonObject = new JSONObject(jsonStr);
-            JSONObject jsonObjectSympton = jsonObject.getJSONObject("data");
+        simpleRequester.setListener(new RequestListener<String>() {
 
-            goodCount = Integer.parseInt(jsonObjectSympton.get("no_symptom").toString());
-            badCount = Integer.parseInt(jsonObjectSympton.get("symptom").toString());
-            totalCount = Integer.parseInt(jsonObjectSympton.get("total").toString());
+            @Override
+            public void onStart() {
 
-            textViewParticipation.setText((int) totalCount + " Participações");
-
-            if (totalCount == 0) {
-                goodPercent = 0;
-            } else {
-                goodPercent = goodCount / totalCount;
             }
 
-            String htmlStringGood = "<b>" + (int) (goodPercent * 100) + "%</b> Bem";
-            textViewGoodPercentage.setText(Html.fromHtml(htmlStringGood));
-            //textViewGoodPercentage.setText((int) (goodPercent * 100) + "% Bem");
-            textViewGoodReport.setText((int) goodCount + " Relatórios");
+            @Override
+            public void onError(Exception e) {
 
-            if (totalCount == 0) {
-                badPercent = 0;
-            } else {
-                badPercent = badCount / totalCount;
             }
 
-            String htmlStringBad = "<b>" + (int) (badPercent * 100) + "%</b> Mal";
-            textViewBadPercentage.setText(Html.fromHtml(htmlStringBad));
-            //textViewBadPercentage.setText((int) (badPercent * 100) + "% Mal");
-            textViewBadReport.setText((int) badCount + " Relatórios");
+            @Override
+            public void onSuccess(final String result) {
 
-            //Pie Char Config
-            pieChart.setUsePercentValues(false);
-            pieChart.setDescription("");
-            pieChart.setDrawCenterText(false);
-            pieChart.setDrawSliceText(false);
-            pieChart.setDrawHoleEnabled(false);
-            pieChart.setHoleColorTransparent(false);
-            pieChart.setHoleRadius(7);
-            pieChart.setTransparentCircleRadius(10);
-            pieChart.setRotationAngle(0);
-            pieChart.setRotationEnabled(false);
-            pieChart.setClickable(false);
+                try {
 
-            setData();
+                    JSONObject jsonObject = new JSONObject(result);
+                    JSONObject jsonObjectSympton = jsonObject.getJSONObject("data");
 
-            layoutDetailGood.setVisibility(View.INVISIBLE);
-            layoutDetailBad.setVisibility(View.INVISIBLE);
+                    goodCount = Integer.parseInt(jsonObjectSympton.get("no_symptom").toString());
+                    badCount = Integer.parseInt(jsonObjectSympton.get("symptom").toString());
+                    totalCount = Integer.parseInt(jsonObjectSympton.get("total").toString());
 
-            //Calendar Config
-            materialCalendarView.setSelectionMode(MaterialCalendarView.SELECTION_MODE_MULTIPLE);
-            materialCalendarView.setArrowColor(R.color.blue_light);
-            materialCalendarView.setOnDateChangedListener(this);
-            materialCalendarView.setOnMonthChangedListener(this);
-            materialCalendarView.setWeekDayLabels(new String[]{"D", "S", "T", "Q", "Q", "S", "S"});
-            materialCalendarView.setTitleMonths(new String[]{"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"});
-            calendarDay = CalendarDay.today();
-            new AsyncTaskRunner().executeOnExecutor(Executors.newSingleThreadExecutor());
+                    textViewParticipation.setText((int) totalCount + " Participações");
 
-            setTextTotalReport(null);
+                    if (totalCount == 0) {
+                        goodPercent = 0;
+                    } else {
+                        goodPercent = goodCount / totalCount;
+                    }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+                    String htmlStringGood = "<b>" + (int) (goodPercent * 100) + "%</b> Bem";
+                    textViewGoodPercentage.setText(Html.fromHtml(htmlStringGood));
+                    //textViewGoodPercentage.setText((int) (goodPercent * 100) + "% Bem");
+                    textViewGoodReport.setText((int) goodCount + " Relatórios");
+
+                    if (totalCount == 0) {
+                        badPercent = 0;
+                    } else {
+                        badPercent = badCount / totalCount;
+                    }
+
+                    String htmlStringBad = "<b>" + (int) (badPercent * 100) + "%</b> Mal";
+                    textViewBadPercentage.setText(Html.fromHtml(htmlStringBad));
+                    //textViewBadPercentage.setText((int) (badPercent * 100) + "% Mal");
+                    textViewBadReport.setText((int) badCount + " Relatórios");
+
+                    //Pie Char Config
+                    pieChart.setUsePercentValues(false);
+                    pieChart.setDescription("");
+                    pieChart.setDrawCenterText(false);
+                    pieChart.setDrawSliceText(false);
+                    pieChart.setDrawHoleEnabled(false);
+                    pieChart.setHoleColorTransparent(false);
+                    pieChart.setHoleRadius(7);
+                    pieChart.setTransparentCircleRadius(10);
+                    pieChart.setRotationAngle(0);
+                    pieChart.setRotationEnabled(false);
+                    pieChart.setClickable(false);
+
+                    setData();
+
+                    layoutDetailGood.setVisibility(View.INVISIBLE);
+                    layoutDetailBad.setVisibility(View.INVISIBLE);
+
+                    //Calendar Config
+                    materialCalendarView.setSelectionMode(MaterialCalendarView.SELECTION_MODE_MULTIPLE);
+                    materialCalendarView.setArrowColor(R.color.blue_light);
+                    materialCalendarView.setOnDateChangedListener(DiaryActivity.this);
+                    materialCalendarView.setOnMonthChangedListener(DiaryActivity.this);
+                    materialCalendarView.setWeekDayLabels(new String[]{"D", "S", "T", "Q", "Q", "S", "S"});
+                    materialCalendarView.setTitleMonths(new String[]{"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"});
+                    calendarDay = CalendarDay.today();
+
+                    //new AsyncTaskRunner().execute();
+
+                    setTextTotalReport(null);
+
+                } catch (Exception e) {
+                    Logger.logError(TAG, e.getMessage());
+                }
+            }
+        });
     }
 
     private void setTextTotalReport(CalendarDay date) {
 
-        if (date ==  null) {
+        if (date == null) {
             date = CalendarDay.today();
         }
 
@@ -333,8 +363,8 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
 
     private void setData() {
 
-        float[] yData = { (int)(badPercent * 100), (int)(goodPercent * 100)};
-        String[] xData = { "Mal", "Bem" };
+        float[] yData = {(int) (badPercent * 100), (int) (goodPercent * 100)};
+        String[] xData = {"Mal", "Bem"};
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
@@ -351,7 +381,7 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
         dataSet.setSliceSpace(2);
         dataSet.setSelectionShift(2);
 
-        int colors[] = {Color.parseColor("#FF0000"),Color.parseColor("#CCCC00")};
+        int colors[] = {Color.parseColor("#FF0000"), Color.parseColor("#CCCC00")};
 
         dataSet.setColors(colors);
 
@@ -368,8 +398,8 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
         pieChart.getLegend().setEnabled(false);
         textViewFrequencyReport.setText("Frequência de envio de relatório em " + CalendarDay.today().getYear());
 
-        Map<Integer, Double> mapTotalMonth = new HashMap<Integer, Double>();
-        Map<Integer, Double> mapTotalMonthTemp = new HashMap<Integer, Double>();
+        final Map<Integer, Double> mapTotalMonth = new HashMap<>();
+        final Map<Integer, Double> mapTotalMonthTemp = new HashMap<>();
         mapTotalMonthTemp.put(1, 0.0);
         mapTotalMonthTemp.put(2, 0.0);
         mapTotalMonthTemp.put(3, 0.0);
@@ -387,100 +417,117 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
 
         if (idSelectedUser == singleUser.getId()) {
             simpleRequester.setUrl(Requester.API_URL + "user/calendar/year?year=" + CalendarDay.today().getYear());
-        } else  if (idSelectedUser.equals("")) {
+        } else if (idSelectedUser.equals("")) {
             simpleRequester.setUrl(Requester.API_URL + "user/calendar/year?year=" + CalendarDay.today().getYear());
         } else {
-            simpleRequester.setUrl(Requester.API_URL + "household/calendar/year?year=" + CalendarDay.today().getYear() + "&household_id="+idSelectedUser);
+            simpleRequester.setUrl(Requester.API_URL + "household/calendar/year?year=" + CalendarDay.today().getYear() + "&household_id=" + idSelectedUser);
         }
 
         simpleRequester.setJsonObject(null);
         simpleRequester.setMethod(Method.GET);
 
-        String jsonStr;
-        try {
-            jsonStr = simpleRequester.execute(simpleRequester).get();
-            JSONObject jsonObject = new JSONObject(jsonStr);
+        simpleRequester.execute();
 
-            if (jsonObject.get("error").toString() == "true") {
-                Toast.makeText(getApplicationContext(), jsonObject.get("message").toString(), Toast.LENGTH_SHORT).show();
-            } else {
-                JSONArray jsonArray = jsonObject.getJSONArray("data");
+        simpleRequester.setListener(new RequestListener<String>() {
 
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    JSONObject jsonObjectTotalMonth = jsonArray.getJSONObject(i);
-                    JSONObject jsonObjectDetail = jsonObjectTotalMonth.getJSONObject("_id");
+            @Override
+            public void onStart() {
 
-                    int month = Integer.parseInt(jsonObjectDetail.get("month").toString());
-
-                    for (int j = 1; j <= mapTotalMonthTemp.size(); j++) {
-
-                        if (j == month) {
-                            mapTotalMonthTemp.put(j, Double.parseDouble(jsonObjectTotalMonth.get("percent").toString()));
-                        }
-                    }
-                }
-
-                lineChart.removeAllSeries();
-                lineChart.getGridLabelRenderer().setTextSize(18);
-                lineChart.getGridLabelRenderer().reloadStyles();
-
-               //Line Chart
-                mapTotalMonth.put(1, mapTotalMonthTemp.get(1));
-                mapTotalMonth.put(2, mapTotalMonthTemp.get(2));
-                mapTotalMonth.put(3, mapTotalMonthTemp.get(3));
-                mapTotalMonth.put(4, mapTotalMonthTemp.get(4));
-                mapTotalMonth.put(5, mapTotalMonthTemp.get(5));
-                mapTotalMonth.put(6, mapTotalMonthTemp.get(6));
-                mapTotalMonth.put(7, mapTotalMonthTemp.get(7));
-                mapTotalMonth.put(8, mapTotalMonthTemp.get(8));
-                mapTotalMonth.put(9, mapTotalMonthTemp.get(9));
-                mapTotalMonth.put(10, mapTotalMonthTemp.get(10));
-                mapTotalMonth.put(11, mapTotalMonthTemp.get(11));
-                mapTotalMonth.put(12, mapTotalMonthTemp.get(12));
-
-                LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>();
-
-
-                for (int k = 1; k <= mapTotalMonth.size(); k++) {
-                    series.appendData(new DataPoint(k, mapTotalMonth.get(k)), true, 100);
-                }
-
-                series.setDrawDataPoints(true);
-                series.setBackgroundColor(R.color.blue_dark);
-                series.setDataPointsRadius(5);
-
-                series.setOnDataPointTapListener(new OnDataPointTapListener() {
-                    @Override
-                    public void onTap(Series series, DataPointInterface dataPoint) {
-                        Toast.makeText(getApplicationContext(), dataPoint.getY() + "% da frequência no envio de relatórios.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(lineChart);
-                staticLabelsFormatter.setHorizontalLabels(new String[]{"jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"});
-                staticLabelsFormatter.setVerticalLabels(new String[]{"0%", "25%", "50%", "75%", "100%"});
-
-                lineChart.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
-
-                lineChart.getGridLabelRenderer().setVerticalLabelsColor(R.color.grey_light);
-                lineChart.getGridLabelRenderer().setHorizontalLabelsColor(R.color.grey_light);
-                lineChart.setTitleColor(R.color.grey_light);
-                lineChart.setTitleTextSize(12f);
-                lineChart.addSeries(series);
-                Viewport viewport = lineChart.getViewport();
-                viewport.setYAxisBoundsManual(true);
-                viewport.setMinY(0);
-                viewport.setMaxY(100);
-                viewport.setScrollable(false);
             }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            @Override
+            public void onError(Exception e) {
+
+            }
+
+            @Override
+            public void onSuccess(String result) {
+
+                try {
+
+                    JSONObject jsonObject = new JSONObject(result);
+
+                    if (jsonObject.get("error").toString() == "true") {
+                        Toast.makeText(getApplicationContext(), jsonObject.get("message").toString(), Toast.LENGTH_SHORT).show();
+                    } else {
+                        JSONArray jsonArray = jsonObject.getJSONArray("data");
+
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObjectTotalMonth = jsonArray.getJSONObject(i);
+                            JSONObject jsonObjectDetail = jsonObjectTotalMonth.getJSONObject("_id");
+
+                            int month = Integer.parseInt(jsonObjectDetail.get("month").toString());
+
+                            for (int j = 1; j <= mapTotalMonthTemp.size(); j++) {
+
+                                if (j == month) {
+                                    mapTotalMonthTemp.put(j, Double.parseDouble(jsonObjectTotalMonth.get("percent").toString()));
+                                }
+                            }
+                        }
+
+                        lineChart.removeAllSeries();
+                        lineChart.getGridLabelRenderer().setTextSize(18);
+                        lineChart.getGridLabelRenderer().reloadStyles();
+
+                        //Line Chart
+                        mapTotalMonth.put(1, mapTotalMonthTemp.get(1));
+                        mapTotalMonth.put(2, mapTotalMonthTemp.get(2));
+                        mapTotalMonth.put(3, mapTotalMonthTemp.get(3));
+                        mapTotalMonth.put(4, mapTotalMonthTemp.get(4));
+                        mapTotalMonth.put(5, mapTotalMonthTemp.get(5));
+                        mapTotalMonth.put(6, mapTotalMonthTemp.get(6));
+                        mapTotalMonth.put(7, mapTotalMonthTemp.get(7));
+                        mapTotalMonth.put(8, mapTotalMonthTemp.get(8));
+                        mapTotalMonth.put(9, mapTotalMonthTemp.get(9));
+                        mapTotalMonth.put(10, mapTotalMonthTemp.get(10));
+                        mapTotalMonth.put(11, mapTotalMonthTemp.get(11));
+                        mapTotalMonth.put(12, mapTotalMonthTemp.get(12));
+
+                        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+
+                        for (int k = 1; k <= mapTotalMonth.size(); k++) {
+                            series.appendData(new DataPoint(k, mapTotalMonth.get(k)), true, 100);
+                        }
+
+                        series.setDrawDataPoints(true);
+                        series.setBackgroundColor(R.color.blue_dark);
+                        series.setDataPointsRadius(5);
+
+                        series.setOnDataPointTapListener(new OnDataPointTapListener() {
+
+                            @Override
+                            public void onTap(Series series, DataPointInterface dataPoint) {
+                                Toast.makeText(getApplicationContext(), dataPoint.getY() + "% da frequência no envio de relatórios.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        StaticLabelsFormatter staticLabelsFormatter = new StaticLabelsFormatter(lineChart);
+                        staticLabelsFormatter.setHorizontalLabels(new String[]{"jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"});
+                        staticLabelsFormatter.setVerticalLabels(new String[]{"0%", "25%", "50%", "75%", "100%"});
+
+                        lineChart.getGridLabelRenderer().setLabelFormatter(staticLabelsFormatter);
+
+                        lineChart.getGridLabelRenderer().setVerticalLabelsColor(R.color.grey_light);
+                        lineChart.getGridLabelRenderer().setHorizontalLabelsColor(R.color.grey_light);
+                        lineChart.setTitleColor(R.color.grey_light);
+                        lineChart.setTitleTextSize(12f);
+                        lineChart.addSeries(series);
+                        Viewport viewport = lineChart.getViewport();
+                        viewport.setYAxisBoundsManual(true);
+                        viewport.setMinY(0);
+                        viewport.setMaxY(100);
+                        viewport.setScrollable(false);
+                    }
+
+                } catch (Exception e) {
+                    Logger.logError(TAG, e.getMessage());
+                }
+
+                setupView(null);
+            }
+
+        });
     }
 
 
@@ -504,7 +551,7 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
             layoutDetailBad.setVisibility(View.VISIBLE);
         }
 
-        if(date != null) {
+        if (date != null) {
 
             if (daysGoodAndBad.size() > 0) {
                 for (int i = 0; i < daysGoodAndBad.size(); i++) {
@@ -519,11 +566,11 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
             SimpleRequester simpleRequester = new SimpleRequester();
 
             if (idSelectedUser == singleUser.getId()) {
-                simpleRequester.setUrl(Requester.API_URL + "user/calendar/day?day="+date.getDay()+"&month=" + (date.getMonth() + 1) + "&year=" + date.getYear());
-            } else  if (idSelectedUser.equals("")) {
-                simpleRequester.setUrl(Requester.API_URL + "user/calendar/day?day="+date.getDay()+"&month=" + (date.getMonth() + 1) + "&year=" + date.getYear());
+                simpleRequester.setUrl(Requester.API_URL + "user/calendar/day?day=" + date.getDay() + "&month=" + (date.getMonth() + 1) + "&year=" + date.getYear());
+            } else if (idSelectedUser.equals("")) {
+                simpleRequester.setUrl(Requester.API_URL + "user/calendar/day?day=" + date.getDay() + "&month=" + (date.getMonth() + 1) + "&year=" + date.getYear());
             } else {
-                simpleRequester.setUrl(Requester.API_URL + "household/calendar/day?day="+date.getDay()+"&month=" + (date.getMonth() + 1) + "&year=" + date.getYear() + "&household_id="+idSelectedUser);
+                simpleRequester.setUrl(Requester.API_URL + "household/calendar/day?day=" + date.getDay() + "&month=" + (date.getMonth() + 1) + "&year=" + date.getYear() + "&household_id=" + idSelectedUser);
             }
 
             simpleRequester.setJsonObject(null);
@@ -564,21 +611,21 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
                         textViewBadReportDetail.setText("     0 Relatórios \"Estou Mal\"");
                     } else {
                         badPercentDetail = ((badCountDetail / totalCountDetail) * 100);
-                        textViewBadReportDetail.setText("     " + (int)badCountDetail + " Relatórios \"Estou Mal\"");
+                        textViewBadReportDetail.setText("     " + (int) badCountDetail + " Relatórios \"Estou Mal\"");
                     }
 
                     if (goodCountDetail == 0) {
                         textViewGoodReportDetail.setText("     0 Relatórios \"Estou Bem\"");
                     } else {
                         goodPercentDetail = ((goodCountDetail / totalCountDetail) * 100);
-                        textViewGoodReportDetail.setText("     " + (int)goodCountDetail + " Relatórios \"Estou Bem\"");
+                        textViewGoodReportDetail.setText("     " + (int) goodCountDetail + " Relatórios \"Estou Bem\"");
                     }
                 }
-            }catch(JSONException e){
+            } catch (JSONException e) {
                 e.printStackTrace();
-            }catch(InterruptedException e){
+            } catch (InterruptedException e) {
                 e.printStackTrace();
-            }catch(ExecutionException e){
+            } catch (ExecutionException e) {
                 e.printStackTrace();
             }
         }
@@ -618,7 +665,7 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
 
                 JSONObject jsonObject = new JSONObject(jsonStr);
 
-                if (jsonObject.get("error").toString().equals("false") ) {
+                if (jsonObject.get("error").toString().equals("false")) {
                     JSONArray jsonArray = jsonObject.getJSONArray("data");
 
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -644,7 +691,7 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
                             daysOnlyGood.add(j);
                         } else if (goodCountTotal > badCountTotal) {
                             daysGood.add(j);
-                        } else if (goodCountTotal < badCountTotal){
+                        } else if (goodCountTotal < badCountTotal) {
                             daysBad.add(j);
                         } else if (goodCountTotal == badCountTotal) {
                             daysEquals.add(j);
@@ -670,7 +717,6 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
 
     private class AsyncTaskRunner extends AsyncTask<Void, Void, Void> {
 
-        private ProgressDialog progressDialog;
 
         @Override
         protected Void doInBackground(Void... voids) {
@@ -685,16 +731,11 @@ public class DiaryActivity extends BaseAppCompatActivity implements ParentListen
             materialCalendarView.removeDecorators();
             materialCalendarView.addDecorators(new MySelectorDecoratorGood(context, daysGood), new MySelectorDecoratorBad(context, daysBad), new DayDisableDecorator(daysZero),
                     new MySelectorDecoratorOnlyGood(context, daysOnlyGood), new MySelectorDecoratorOnlyBad(context, daysOnlyBad), new MySelectorDecoratorEquals(context, daysEquals));
-            progressDialog.dismiss();
         }
 
         @Override
         protected void onPreExecute() {
-            progressDialog = new ProgressDialog(context);
-            progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.rgb(30, 136,229)));
-            progressDialog.setTitle(R.string.app_name);
-            progressDialog.setMessage("Carregando seus dados...");
-            progressDialog.show();
+
         }
     }
 }
