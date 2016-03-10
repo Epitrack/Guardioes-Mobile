@@ -3,8 +3,7 @@
     xmlns:layout="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_blue"
-    >
+    android:background="@drawable/background_blue">
 
     <TextView
         android:id="@+id/text_view_message"
@@ -33,13 +32,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <de.hdodenhof.circleimageview.CircleImageView
+            <com.github.siyamed.shapeimageview.CircularImageView
                 android:id="@+id/image_view_image"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center_vertical"
-                android:src="@drawable/mask"
-                android:background="@drawable/image_avatar_small_1"/>
+                android:background="@drawable/image_avatar_small_1"
+                android:src="@drawable/mask" />
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="0dp"
@@ -55,8 +54,8 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_nickname"
                     android:inputType="textCapSentences"
-                    android:textColor="@color/grey_light"
-                    android:maxLength="15" />
+                    android:maxLength="15"
+                    android:textColor="@color/grey_light" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -85,8 +84,8 @@
                     android:id="@+id/spinner_gender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/grey_light"
-                    android:entries="@array/gender_array" />
+                    android:entries="@array/gender_array"
+                    android:textColor="@color/grey_light" />
 
             </LinearLayout>
 
@@ -108,8 +107,8 @@
                     android:id="@+id/spinner_race"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/grey_light"
-                    android:entries="@array/race_array" />
+                    android:entries="@array/race_array"
+                    android:textColor="@color/grey_light" />
 
             </LinearLayout>
 
@@ -131,25 +130,25 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_birth_date_dt"
-                    android:textColor="@color/grey_light"
-                    android:inputType="date" />
+                    android:inputType="date"
+                    android:textColor="@color/grey_light" />
 
 
                 <TextView
+                    android:id="@+id/label_relationship"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:text="@string/relationship"
                     android:textColor="@color/bluish"
-                    android:id="@+id/label_relationship"
                     android:textSize="13dp" />
 
                 <Spinner
                     android:id="@+id/spinner_relationship"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/grey_light"
-                    android:entries="@array/relationship_array" />
+                    android:entries="@array/relationship_array"
+                    android:textColor="@color/grey_light" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -169,8 +168,8 @@
                     android:enabled="false"
                     android:hint="@string/hint_mail"
                     android:inputType="textEmailAddress"
-                    android:textColor="@color/grey_light"
                     android:maxLength="50"
+                    android:textColor="@color/grey_light"
                     android:visibility="invisible" />
 
             </android.support.design.widget.TextInputLayout>
@@ -195,9 +194,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_redefine_password"
-                    android:textColor="@color/grey_light"
                     android:inputType="textPassword"
-                    android:maxLength="16" />
+                    android:maxLength="16"
+                    android:textColor="@color/grey_light" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -213,9 +212,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_repeat_password"
-                    android:textColor="@color/grey_light"
                     android:inputType="textPassword"
-                    android:maxLength="16" />
+                    android:maxLength="16"
+                    android:textColor="@color/grey_light" />
 
             </android.support.design.widget.TextInputLayout>
 

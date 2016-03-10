@@ -14,7 +14,7 @@
         android:layout_marginRight="27dp"
         android:layout_weight="1">
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <com.github.siyamed.shapeimageview.CircularImageView
             android:id="@+id/image_view_image"
             android:layout_width="40dp"
             android:layout_height="40dp" />

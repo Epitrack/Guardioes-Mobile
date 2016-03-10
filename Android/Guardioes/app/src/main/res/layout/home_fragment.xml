@@ -13,15 +13,14 @@
         android:layout_marginTop="15dp"
         android:src="@drawable/image_avatar_3" />-->
 
-    <de.hdodenhof.circleimageview.CircleImageView
+    <com.github.siyamed.shapeimageview.CircularImageView
         android:id="@+id/image_view_photo"
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="15dp"
-        android:src="@drawable/image_avatar_3"
         android:layout_weight="4"
-        />
+        android:src="@drawable/image_avatar_3" />
 
     <TextView
         android:id="@+id/text_view_name"
@@ -29,50 +28,50 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="35dp"
         android:layout_marginTop="-25dp"
+        android:layout_weight="1"
         android:text="@string/message_hello"
         android:textColor="@android:color/white"
         android:textSize="30dp"
-        android:textStyle="bold"
-        android:layout_weight="1"/>
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/background_home_menu"
         android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:orientation="vertical"
-        android:layout_weight="900">
+        android:layout_marginTop="20dp"
+        android:layout_weight="900"
+        android:background="@drawable/background_home_menu"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_weight="1">
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/text_view_notice"
                 style="@style/TextHome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableTop="@drawable/icon_notice"
-                android:text="@string/notice"
                 android:layout_weight="1"
-                android:gravity="center"/>
+                android:drawableTop="@drawable/icon_notice"
+                android:gravity="center"
+                android:text="@string/notice" />
 
             <TextView
                 android:id="@+id/text_view_map"
                 style="@style/TextHome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableTop="@drawable/icon_map"
-                android:text="@string/map_health_1"
-                android:layout_weight="1"
                 android:layout_marginTop="5dp"
-                android:gravity="center"/>
+                android:layout_weight="1"
+                android:drawableTop="@drawable/icon_map"
+                android:gravity="center"
+                android:text="@string/map_health_1" />
 
         </LinearLayout>
 
@@ -80,45 +79,44 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:baselineAligned="false"
             android:gravity="center"
-            android:orientation="horizontal"
-            android:baselineAligned="false">
+            android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/text_view_join"
-                    style="@style/TextHome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:drawableTop="@drawable/icon_join"
-                    android:text="@string/join"
-                    />
+            <TextView
+                android:id="@+id/text_view_join"
+                style="@style/TextHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/icon_join"
+                android:text="@string/join" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/text_view_tip"
                 style="@style/TextHome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableTop="@drawable/icon_tip"
-                android:text="@string/tip_health_1"
                 android:layout_weight="1"
-                android:gravity="center"/>
+                android:drawableTop="@drawable/icon_tip"
+                android:gravity="center"
+                android:text="@string/tip_health_1" />
 
             <TextView
                 android:id="@+id/text_view_diary"
                 style="@style/TextHome"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableTop="@drawable/icon_diary"
-                android:text="@string/diary_health_1"
                 android:layout_weight="1"
-                android:gravity="center"/>
+                android:drawableTop="@drawable/icon_diary"
+                android:gravity="center"
+                android:text="@string/diary_health_1" />
 
         </LinearLayout>
     </LinearLayout>

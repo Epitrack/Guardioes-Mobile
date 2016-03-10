@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
+import com.github.siyamed.shapeimageview.CircularImageView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -95,7 +96,7 @@ public class UserAdapter extends ArrayAdapter<User> {
 
         TextView textViewName;
         TextView textViewType;
-        ImageView imageViewImage;
+        CircularImageView imageViewImage;
         ImageView imageTrash;
     }
 
@@ -114,7 +115,7 @@ public class UserAdapter extends ArrayAdapter<User> {
 
             viewHolder.textViewName = (TextView) view.findViewById(R.id.text_view_name);
             viewHolder.textViewType = (TextView) view.findViewById(R.id.text_view_type);
-            viewHolder.imageViewImage = (ImageView) view.findViewById(R.id.image_view_image);
+            viewHolder.imageViewImage = (CircularImageView) view.findViewById(R.id.image_view_image);
 
             view.findViewById(R.id.linear_layout).setOnClickListener(new View.OnClickListener() {
 

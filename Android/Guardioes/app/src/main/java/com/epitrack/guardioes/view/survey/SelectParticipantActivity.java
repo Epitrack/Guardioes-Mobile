@@ -16,6 +16,7 @@ import com.epitrack.guardioes.utility.DateFormat;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.menu.profile.Avatar;
 import com.epitrack.guardioes.view.menu.profile.UserActivity;
+import com.github.siyamed.shapeimageview.CircularImageView;
 import com.google.android.gms.analytics.HitBuilders;
 
 import java.io.File;
@@ -37,8 +38,7 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
     TextView textViewAge;
 
     @Bind(R.id.image_view_photo)
-    de.hdodenhof.circleimageview.CircleImageView imageViewAvatar;
-    //ImageView imageViewAvatar;
+    CircularImageView imageViewAvatar;
 
     @Bind(R.id.recycler_view)
     RecyclerView recyclerView;

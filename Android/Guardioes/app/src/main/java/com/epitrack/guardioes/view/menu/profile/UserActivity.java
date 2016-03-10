@@ -31,6 +31,7 @@ import com.epitrack.guardioes.utility.Mask;
 import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.welcome.WelcomeActivity;
+import com.github.siyamed.shapeimageview.CircularImageView;
 import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONException;
@@ -54,8 +55,7 @@ public class UserActivity extends BaseAppCompatActivity {
     EditText editTextNickname;
 
     @Bind(R.id.image_view_image)
-    de.hdodenhof.circleimageview.CircleImageView imageViewImage;
-    //ImageView imageViewImage;
+    CircularImageView imageViewImage;
 
     @Bind(R.id.spinner_gender)
     Spinner spinnerGender;

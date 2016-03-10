@@ -1,18 +1,13 @@
 package com.epitrack.guardioes.view;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,33 +20,22 @@ import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
-import com.epitrack.guardioes.utility.BitmapUtility;
 import com.epitrack.guardioes.utility.DialogBuilder;
-import com.epitrack.guardioes.utility.Extension;
-import com.epitrack.guardioes.utility.FileUtility;
 import com.epitrack.guardioes.utility.NetworkUtility;
-import com.epitrack.guardioes.view.account.CreateAccountActivity;
 import com.epitrack.guardioes.view.base.BaseFragment;
 import com.epitrack.guardioes.view.diary.DiaryActivity;
 import com.epitrack.guardioes.view.menu.profile.Avatar;
 import com.epitrack.guardioes.view.menu.profile.ProfileActivity;
-import com.epitrack.guardioes.view.menu.profile.UserAdapter;
 import com.epitrack.guardioes.view.survey.SelectParticipantActivity;
 import com.epitrack.guardioes.view.tip.TipActivity;
+import com.github.siyamed.shapeimageview.CircularImageView;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -69,20 +53,13 @@ public class HomeFragment extends BaseFragment {
     TextView textViewName;
 
     @Bind(R.id.image_view_photo)
-    de.hdodenhof.circleimageview.CircleImageView imageViewPhoto;
+    CircularImageView imageViewPhoto;
 
-    private Tracker mTracker;
     SingleUser singleUser = SingleUser.getInstance();
 
     @Override
     public void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getActivity().getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         setDisplayTitle(false);
         setDisplayLogo(true);
@@ -95,8 +72,6 @@ public class HomeFragment extends BaseFragment {
         final View view = inflater.inflate(R.layout.home_fragment, viewGroup, false);
 
         ButterKnife.bind(this, view);
-
-        loadImageProfile();
 
         String text = getString(R.string.message_hello);
         text = text.replace("{0}", singleUser.getNick());
@@ -245,7 +220,7 @@ public class HomeFragment extends BaseFragment {
 
     @OnClick(R.id.text_view_notice)
     public void onNews() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Notice Button")
                 .build());
@@ -282,35 +257,17 @@ public class HomeFragment extends BaseFragment {
 
     @OnClick(R.id.text_view_map)
     public void onMap() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
-                .setAction("Notice Button")
+                .setAction("Map Button")
                 .build());
 
-        if (NetworkUtility.isOnline(getActivity().getApplication())) {
-
-            final ProgressDialog progressDialog;
-            progressDialog = new ProgressDialog(getActivity(), R.style.Theme_MyProgressDialog);
-            progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.rgb(30, 136, 229)));
-            progressDialog.setTitle(R.string.app_name);
-            progressDialog.setMessage("Carregando...");
-            progressDialog.show();
-
-            navigateTo(MapSymptomActivity.class);
-
-        } else {
-
-            new DialogBuilder(getActivity()).load()
-                    .title(R.string.attention)
-                    .content(R.string.network_fail)
-                    .positiveText(R.string.ok)
-                    .show();
-        }
+        navigateTo(MapSymptomActivity.class);
     }
 
     @OnClick(R.id.text_view_tip)
     public void onTip() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Tip Button")
                 .build());
@@ -320,19 +277,12 @@ public class HomeFragment extends BaseFragment {
 
     @OnClick(R.id.text_view_diary)
     public void onDiary() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Diary of Health Button")
                 .build());
 
         if (NetworkUtility.isOnline(getActivity().getApplication())) {
-
-            final ProgressDialog progressDialog;
-            progressDialog = new ProgressDialog(getActivity(), R.style.Theme_MyProgressDialog);
-            progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.rgb(30, 136, 229)));
-            progressDialog.setTitle(R.string.app_name);
-            progressDialog.setMessage("Carregando...");
-            progressDialog.show();
 
             navigateTo(DiaryActivity.class);
 
@@ -349,7 +299,7 @@ public class HomeFragment extends BaseFragment {
 
     @OnClick(R.id.text_view_join)
     public void onJoin() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Survey Button")
                 .build());

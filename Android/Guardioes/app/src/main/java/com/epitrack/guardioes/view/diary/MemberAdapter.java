@@ -6,18 +6,15 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.epitrack.guardioes.R;
-import com.epitrack.guardioes.model.DTO;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
-import com.epitrack.guardioes.utility.BitmapUtility;
 import com.epitrack.guardioes.utility.ViewUtility;
 import com.epitrack.guardioes.view.menu.profile.Avatar;
 import com.epitrack.guardioes.view.survey.ParentListener;
+import com.github.siyamed.shapeimageview.CircularImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +59,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberAdapter.ViewHolder
         TextView textViewName;
 
         @Bind(R.id.image_view_photo)
-        de.hdodenhof.circleimageview.CircleImageView imageViewPhoto;
-        //ImageView imageViewPhoto;
+        CircularImageView imageViewPhoto;
 
         @Bind(R.id.view_select)
         View viewSelect;
