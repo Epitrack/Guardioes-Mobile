@@ -1,21 +1,14 @@
 package com.epitrack.guardioes.view.menu.profile;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -29,7 +22,6 @@ import com.epitrack.guardioes.model.User;
 import com.epitrack.guardioes.request.Method;
 import com.epitrack.guardioes.request.Requester;
 import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.BitmapUtility;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DateFormat;
@@ -40,19 +32,11 @@ import com.epitrack.guardioes.view.HomeActivity;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.welcome.WelcomeActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import butterknife.Bind;
@@ -109,18 +93,11 @@ public class UserActivity extends BaseAppCompatActivity {
     SingleUser singleUser = SingleUser.getInstance();
     private int userAvatar = 0;
     String photoPath = "";
-    private Tracker mTracker;
     private ProfileImage profileImage = ProfileImage.getInstance();
 
     @Override
     protected void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         profileImage = ProfileImage.getInstance();
 
@@ -163,8 +140,9 @@ public class UserActivity extends BaseAppCompatActivity {
 
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("User Form Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("User Form Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
 
         loadUser();
     }
@@ -457,7 +435,7 @@ public class UserActivity extends BaseAppCompatActivity {
     @OnClick(R.id.button_add)
     public void onAdd() {
         //Miquéias Lopes
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Create New Member/User Button")
                 .build());

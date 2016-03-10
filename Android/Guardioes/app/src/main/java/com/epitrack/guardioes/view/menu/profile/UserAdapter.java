@@ -13,18 +13,9 @@ import android.widget.TextView;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
-import com.epitrack.guardioes.request.Method;
-import com.epitrack.guardioes.request.Requester;
-import com.epitrack.guardioes.request.SimpleRequester;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author Igor Morais
