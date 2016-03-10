@@ -6,10 +6,8 @@ import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
 
 import com.epitrack.guardioes.R;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import butterknife.Bind;
 
@@ -21,19 +19,11 @@ public class ZikaTipActivity extends BaseAppCompatActivity {
     @Bind(R.id.zika_content)
     TextView zikaContent;
 
-    private Tracker mTracker;
-
     @Override
     protected void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
 
         setContentView(R.layout.zika_info);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         zikaContent.setText(Html.fromHtml("<p>&#8226;&nbsp;Os vírus da Dengue, Zika e Chikungunya são transmitidos pelo mosquito Aedes <i>aegypti</i> e apresentam sinais e sintomas parecidos.</p>\n" +
                 "\n" +
@@ -74,7 +64,8 @@ public class ZikaTipActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Zika Tip Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Zika Tip Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 }

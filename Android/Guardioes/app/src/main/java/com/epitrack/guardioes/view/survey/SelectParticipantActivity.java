@@ -6,35 +6,21 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.SingleUser;
 import com.epitrack.guardioes.model.User;
-import com.epitrack.guardioes.request.Method;
-import com.epitrack.guardioes.request.Requester;
-import com.epitrack.guardioes.request.SimpleRequester;
-import com.epitrack.guardioes.service.AnalyticsApplication;
-import com.epitrack.guardioes.utility.BitmapUtility;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.DateFormat;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.epitrack.guardioes.view.menu.profile.Avatar;
 import com.epitrack.guardioes.view.menu.profile.UserActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.melnykov.fab.FloatingActionButton;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -62,19 +48,12 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
 
     public static List<User> parentList = new ArrayList<>();
     SingleUser singleUser = SingleUser.getInstance();
-    private Tracker mTracker;
 
     @Override
     protected void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
 
         setContentView(R.layout.select_participant);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         //Miquéias Lopes
         int j = DateFormat.getDateDiff(singleUser.getDob());
@@ -161,10 +140,11 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
     @Override
     protected void onResume() {
         super.onResume();
-        mTracker.setScreenName("Select Participant Survey Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-        loadHousehold();
 
+        getTracker().setScreenName("Select Participant Survey Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
+
+        loadHousehold();
     }
 
     @Override
@@ -176,12 +156,11 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
     //@OnClick(R.id.button_add)
     public void onAdd() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Survey Add New Member Button")
                 .build());
 
-        User user = new User();
         final Bundle bundle = new Bundle();
 
         bundle.putBoolean(Constants.Bundle.NEW_MEMBER, true);
@@ -192,7 +171,7 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
     @OnClick(R.id.image_view_photo)
     public void onUserSelect() {
 
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Survey Select Main User Button")
                 .build());
@@ -203,7 +182,6 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
         navigateTo(StateActivity.class, bundle);
     }
 
-
     @Override
     public void onParentSelect(String id) {
         if (id.equals("-1")) {
@@ -213,7 +191,8 @@ public class SelectParticipantActivity extends BaseAppCompatActivity implements 
             bundle.putBoolean(Constants.Bundle.SOCIAL_NEW, false);
             navigateTo(UserActivity.class, bundle);
         } else {
-            mTracker.send(new HitBuilders.EventBuilder()
+
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Survey Select Household Button")
                     .build());

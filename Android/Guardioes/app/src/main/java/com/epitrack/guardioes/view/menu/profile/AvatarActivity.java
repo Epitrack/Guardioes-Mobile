@@ -2,7 +2,6 @@ package com.epitrack.guardioes.view.menu.profile;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,15 +16,12 @@ import com.epitrack.guardioes.BuildConfig;
 import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.model.ProfileImage;
 import com.epitrack.guardioes.model.SingleUser;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.utility.Constants;
 import com.epitrack.guardioes.utility.Extension;
 import com.epitrack.guardioes.utility.Logger;
 import com.epitrack.guardioes.utility.MediaUtility;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
-import com.epitrack.guardioes.view.menu.ImageActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -49,7 +45,6 @@ public class AvatarActivity extends BaseAppCompatActivity implements AdapterView
     private final SelectHandler handler = new SelectHandler();
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private Tracker mTracker;
     private ProfileImage profileImage = ProfileImage.getInstance();
 
     @Override
@@ -57,12 +52,6 @@ public class AvatarActivity extends BaseAppCompatActivity implements AdapterView
         super.onCreate(bundle);
 
         setContentView(R.layout.avatar);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         profileImage.setAvatar("");
         profileImage.setUri(null);
@@ -75,8 +64,9 @@ public class AvatarActivity extends BaseAppCompatActivity implements AdapterView
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Select Avatar Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Select Avatar Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @Override
@@ -96,7 +86,7 @@ public class AvatarActivity extends BaseAppCompatActivity implements AdapterView
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Take Photo Button")
                     .build());
@@ -125,7 +115,7 @@ public class AvatarActivity extends BaseAppCompatActivity implements AdapterView
 
     @OnClick(R.id.button_photo)
     public void onSave() {
-        mTracker.send(new HitBuilders.EventBuilder()
+        getTracker().send(new HitBuilders.EventBuilder()
                 .setCategory("Action")
                 .setAction("Select Avatar Button")
                 .build());

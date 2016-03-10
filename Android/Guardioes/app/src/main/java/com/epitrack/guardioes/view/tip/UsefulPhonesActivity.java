@@ -8,10 +8,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.epitrack.guardioes.R;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -22,19 +20,11 @@ public class UsefulPhonesActivity extends BaseAppCompatActivity {
     @Bind(R.id.button_call)
     Button buttonCall;
 
-    private Tracker mTracker;
-
     @Override
     public void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
 
         setContentView(R.layout.useful_phones);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         phoneId = getIntent().getIntExtra("phone_id", 1);
         ImageView imageView = (ImageView) findViewById(R.id.image_call);
@@ -74,44 +64,45 @@ public class UsefulPhonesActivity extends BaseAppCompatActivity {
     public void onResume() {
         super.onResume();
         if (phoneId == Phone.EMERGENCY.getId()) {
-            mTracker.setScreenName("SAMU Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("SAMU Screen - " + this.getClass().getSimpleName());
         } else if (phoneId == Phone.POLICE.getId()) {
-            mTracker.setScreenName("Police Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("Police Screen - " + this.getClass().getSimpleName());
         } else if (phoneId == Phone.FIREMAN.getId()) {
-            mTracker.setScreenName("Fireman Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("Fireman Screen - " + this.getClass().getSimpleName());
         } else if (phoneId == Phone.DEFENSE.getId()) {
-            mTracker.setScreenName("Civil Defense Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("Civil Defense Screen - " + this.getClass().getSimpleName());
         } else if (phoneId == Phone.SUS.getId()) {
-            mTracker.setScreenName("SUS Screen - " + this.getClass().getSimpleName());
+            getTracker().setScreenName("SUS Screen - " + this.getClass().getSimpleName());
         }
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     @OnClick(R.id.button_call)
     public void onClick() {
 
         if (phoneId == Phone.EMERGENCY.getId()) {
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Call SAMU Button")
                     .build());
         } else if (phoneId == Phone.POLICE.getId()) {
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Call Police Button")
                     .build());
         } else if (phoneId == Phone.FIREMAN.getId()) {
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Call Fireman Button")
                     .build());
         } else if (phoneId == Phone.DEFENSE.getId()) {
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Call Civil Defense Button")
                     .build());
         } else if (phoneId == Phone.SUS.getId()) {
-            mTracker.send(new HitBuilders.EventBuilder()
+            getTracker().send(new HitBuilders.EventBuilder()
                     .setCategory("Action")
                     .setAction("Call SUS Defense Button")
                     .build());

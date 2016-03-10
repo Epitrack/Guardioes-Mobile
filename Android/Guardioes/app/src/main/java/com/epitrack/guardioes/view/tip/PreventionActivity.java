@@ -5,10 +5,8 @@ import android.text.Html;
 import android.widget.TextView;
 
 import com.epitrack.guardioes.R;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import butterknife.Bind;
 
@@ -20,19 +18,11 @@ public class PreventionActivity extends BaseAppCompatActivity {
     @Bind(R.id.prevention_content_01)
     TextView preventContent;
 
-    private Tracker mTracker;
-
     @Override
     protected void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
 
         setContentView(R.layout.prevention);
-
-            // [START shared_tracker]
-            // Obtain the shared Tracker instance.
-            AnalyticsApplication application = (AnalyticsApplication) getApplication();
-            mTracker = application.getDefaultTracker();
-            // [END shared_tracker]
 
         preventContent.setText(Html.fromHtml("<p><b>Malária</b></p>\n" +
                 "\n" +
@@ -86,7 +76,8 @@ public class PreventionActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Prevention Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Prevention Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 }

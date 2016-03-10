@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
+import com.epitrack.guardioes.R;
 import com.epitrack.guardioes.view.Navigate;
+import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.Tracker;
 
 import butterknife.ButterKnife;
 
@@ -15,6 +18,8 @@ import butterknife.ButterKnife;
  * @author Igor Morais
  */
 public class BaseFragment extends Fragment implements Navigate {
+
+    private Tracker tracker;
 
     @Override
     public void onCreate(final Bundle bundle) {
@@ -110,5 +115,14 @@ public class BaseFragment extends Fragment implements Navigate {
 
     public final void setDisplayLogo(final boolean display) {
         getSupportActionBar().setDisplayUseLogoEnabled(display);
+    }
+
+    public Tracker getTracker() {
+
+        if (tracker == null) {
+            tracker = GoogleAnalytics.getInstance(getActivity()).newTracker(R.xml.analytics);
+        }
+
+        return tracker;
     }
  }

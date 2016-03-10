@@ -5,10 +5,8 @@ import android.text.Html;
 import android.widget.TextView;
 
 import com.epitrack.guardioes.R;
-import com.epitrack.guardioes.service.AnalyticsApplication;
 import com.epitrack.guardioes.view.base.BaseAppCompatActivity;
 import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import butterknife.Bind;
 
@@ -16,8 +14,6 @@ import butterknife.Bind;
  * @author Igor Morais
  */
 public class VaccineActivity extends BaseAppCompatActivity {
-
-    private Tracker mTracker;
 
     @Bind(R.id.vacinne_content_01)
     TextView vaccineContent;
@@ -27,12 +23,6 @@ public class VaccineActivity extends BaseAppCompatActivity {
         super.onCreate(bundle);
 
         setContentView(R.layout.vaccine);
-
-        // [START shared_tracker]
-        // Obtain the shared Tracker instance.
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
-        // [END shared_tracker]
 
         vaccineContent.setText(Html.fromHtml("<p>&#8226;&nbsp;A Organização Mundial da Saúde (OMS) informa que não há calendário internacional de vacinação para todos os viajantes. Para cada viajante, será adotada recomendação personalizada de acordo com os países a serem visitados, dependendo do tipo, duração e tempo disponível para aplicação da vacina antes da partida.</p>\n" +
                 "\n" +
@@ -56,7 +46,8 @@ public class VaccineActivity extends BaseAppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mTracker.setScreenName("Vaccine Screen - " + this.getClass().getSimpleName());
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        getTracker().setScreenName("Vaccine Screen - " + this.getClass().getSimpleName());
+        getTracker().send(new HitBuilders.ScreenViewBuilder().build());
     }
 }
